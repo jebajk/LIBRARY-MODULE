@@ -1,0 +1,267 @@
+#include <stdio.h>
+#include <string.h>
+
+struct book {
+    int bookid, cop, status;
+    char bookname[100];
+};
+
+struct stud {
+    int passcode, id, currentBorrowedBookId;
+    char name[100], phone[100];
+};
+
+void admin();
+void student();
+void signup();
+void signin();
+void login(int l);
+void abook();
+void ibook();
+void lendBook(int studentIndex, int bookId);
+void returnBook(int studentIndex, int bookId);
+void saveReport(struct book books[], int num_books, struct stud students[], int num_students);
+
+int se = 0, bc = 0, stuid = 1000, a;
+struct book b[100];
+struct stud s[100];
+
+int main() {
+    int ch;
+    printf("*******WELCOME TO JK LIBRARY*******");
+
+    while (1) {
+        printf("\n 1. admin");
+        printf("\n 2. students");
+        printf("\n 3. exit");
+        printf("\nselect: ");
+        scanf("%d", &ch);
+
+        if (ch == 1) {
+            int id = 124, a, f = 1;
+            printf("enter the admin ID: ");
+            scanf("%d", &a);
+
+            if (a == id) {
+                printf("\n welcome ADMIN");
+                admin();
+            } else {
+                printf("\ninvalid");
+            }
+        } else if (ch == 2) {
+            student();
+        } else if (ch == 3) {
+            break;
+        } else {
+            printf("Invalid choice. Please enter a valid option.\n");
+        }
+    }
+
+    return 0;
+}
+
+void admin() {
+    int ch;
+    while (1) {
+        printf("\n1. add books");
+        printf("\n2. issue book");
+        printf("\n3. saveReport");
+        printf("\n4. exit");
+        printf("\nselect: ");
+        scanf("%d", &ch);
+
+        if (ch == 1)
+            abook();
+        else if (ch == 2)
+            ibook();
+        else if (ch == 3)
+            saveReport(b, bc, s, se);
+        else if (ch == 4)
+            break;
+        else
+            printf("Invalid choice. Please enter a valid option.\n");
+    }
+}
+
+void abook() {
+    int i, n;
+    printf("\n enter the total number of books to be added: ");
+    scanf("%d", &n);
+
+    for (i = 0; i < n; i++) {
+        printf("\nenter the bookid: ");
+        scanf("%d", &b[bc].bookid);
+        printf("enter the book name: ");
+        scanf("%s", b[bc].bookname);
+        printf("number of copies: ");
+        scanf("%d", &b[bc].cop);
+        b[bc].status = b[bc].cop;
+        bc++;
+    }
+
+    printf("Your books are added.\n");
+}
+
+void ibook() {
+    int i;
+    printf("book id\tbook name\tbook copies\t\n");
+
+    for (i = 0; i < bc; i++) {
+        printf("%d\t\t%s\t\t%d\n", b[i].bookid, b[i].bookname, b[i].cop);
+    }
+}
+
+void saveReport(struct book books[], int num_books, struct stud students[], int num_students) {
+    FILE *file = fopen("library_report.txt", "a");
+
+    if (file == NULL) {
+        printf("Error opening file for writing.\n");
+        return;
+    }
+
+    fprintf(file, "\nLibrary Report:\n");
+    fprintf(file, "\nBook Details:\n");
+
+    for (int i = 0; i < num_books; i++) {
+        fprintf(file, "Book ID: %d, Name: %s, Copies: %d\n", books[i].bookid, books[i].bookname, books[i].cop);
+    }
+    fprintf(file, "\nStudent Details:\n");
+
+    for (int i = 0; i < num_students; i++) {
+        fprintf(file, "Student ID: %d, Name: %s\n", students[i].id, students[i].name);
+    }
+
+    fclose(file);
+    printf("Library report saved successfully.\n");
+}
+
+void student() {
+    int ch;
+    while (1) {
+        printf("\n1. signup");
+        printf("\n2. signin");
+        printf("\n3. exit");
+        printf("\nselect: ");
+        scanf("%d", &ch);
+
+        if (ch == 1)
+            signup();
+        else if (ch == 2)
+            signin();
+        else if (ch == 3)
+            break;
+        else
+            printf("Invalid choice. Please enter a valid option.\n");
+    }
+}
+
+void signup() {
+    printf("Enter your name: ");
+    scanf("%s", s[se].name);
+    s[se].id = stuid;
+    printf("\nYour register number is generated: %d", stuid++);
+    printf("\nEnter your password: ");
+    scanf("%d", &s[se].passcode);
+    se++;
+    printf("\n*** Welcome ***\n");
+}
+
+void lendBook(int studentIndex, int bookId) {
+    for (int j = 0; j < bc; j++) {
+        if (b[j].bookid == bookId) {
+            --b[j].cop;
+            s[studentIndex].currentBorrowedBookId = bookId;
+            printf("\nEnjoy your book, book is lended.\n");
+            return;
+        }
+    }
+    printf("\nSorry, your book ID is invalid.\n");
+}
+
+void returnBook(int studentIndex, int bookId) {
+    if (s[studentIndex].currentBorrowedBookId == bookId) {
+        for (int j = 0; j < bc; j++) {
+            if (b[j].bookid == bookId) {
+                ++b[j].cop;
+                s[studentIndex].currentBorrowedBookId = 0;
+                printf("\nBook is returned.\n");
+                return;
+            }
+        }
+    } else {
+        printf("\nYou can only return the book that you borrowed.\n");
+    }
+}
+
+void signin() {
+    int ch, password, i, j;
+    printf("\nEnter your ID: ");
+    scanf("%d", &i);
+    printf("Enter your password: ");
+    scanf("%d", &password);
+
+    for (j = 0; j < se; j++) {
+        if (s[j].id == i) {
+            if (s[j].passcode == password) {
+                printf("\nWelcome");
+                login(j);
+            } else {
+                printf("Password is incorrect.\n");
+            }
+        }
+    }
+}
+
+void login(int l) {
+    int ch, i;
+    while (1) {
+        printf("\n1. View books ");
+        printf("\n2. Search book");
+        printf("\n3. Lend book");
+        printf("\n4. Return book");
+        printf("\n5. Exit");
+        printf("\nSelect: ");
+        scanf("%d", &ch);
+
+        if (ch == 1) {
+            printf("Book id\t\tBook name\t\tBook copies\t\n");
+
+            for (i = 0; i < bc; i++) {
+                printf("%d\t\t%s\t\t%d\n", b[i].bookid, b[i].bookname, b[i].cop);
+            }
+        } else if (ch == 2) {
+            int bn, f = 0;
+            printf("Enter the book ID to search: ");
+            scanf("%d", &bn);
+
+            for (i = 0; i < bc; i++) {
+                if (b[i].bookid == bn) {
+                    printf("\nBook ID: %d", b[i].bookid);
+                    printf("\nBook name: %s", b[i].bookname);
+                    f = 1;
+                    break;
+                }
+            }
+            if (!f)
+                printf("Sorry, your search is invalid.\n");
+        } else if (ch == 3) {
+            int i;
+            printf("\nEnter the book ID to lend: ");
+            scanf("%d", &i);
+            a = i;
+
+            lendBook(l, i);
+        } else if (ch == 4) {
+            int s;
+            printf("\nEnter the book ID to return: ");
+            scanf("%d", &s);
+
+            returnBook(l, s);
+        } else if (ch == 5) {
+            break;
+        } else {
+            printf("Invalid choice. Please enter a valid option.\n");
+        }
+    }
+}
+
